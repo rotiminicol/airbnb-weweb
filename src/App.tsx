@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import ListingDetails from "./pages/ListingDetails";
 import Payment from "./pages/Payment";
@@ -12,6 +13,10 @@ import NotFound from "./pages/NotFound";
 import HelpCenter from "./pages/HelpCenter";
 import Host from "./pages/Host";
 import Bookings from "./pages/Bookings";
+import Profile from "./pages/Profile";
+import Wishlists from "./pages/Wishlists";
+import Trips from "./pages/Trips";
+import AuthCallback from './pages/AuthCallback';
 
 const queryClient = new QueryClient();
 
@@ -32,8 +37,12 @@ const AnimatedRoutes = () => {
           <Route path="/payment" element={<Payment />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/bookings" element={<Bookings />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/wishlists" element={<Wishlists />} />
+          <Route path="/trips" element={<Trips />} />
           <Route path="/help-center" element={<HelpCenter />} />
           <Route path="/host" element={<Host />} />
+          <Route path="/auth/callback/:provider" element={<AuthCallback />} />
           <Route path="/aircover" element={<NotFound />} />
           <Route path="/safety" element={<NotFound />} />
           <Route path="/accessibility" element={<NotFound />} />
@@ -55,13 +64,15 @@ const AnimatedRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AnimatedRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatedRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

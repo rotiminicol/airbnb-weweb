@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Star, MapPin, Wifi, Utensils, Car, Thermometer, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Listing } from '../types';

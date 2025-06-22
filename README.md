@@ -1,73 +1,200 @@
-# Welcome to your Lovable project
+# Airbnb Clone - Fullstack Project
 
-## Project info
+A modern, fullstack Airbnb clone built with React, TypeScript, and Xano backend. Features authentication, listings, bookings, wishlists, and more.
 
-**URL**: https://lovable.dev/projects/1045204f-48b3-4284-b057-fc97ccd88620
+## 🚀 Features
 
-## How can I edit this code?
+- **Authentication**: JWT-based auth with signup/login
+- **Listings**: Browse, search, and filter properties
+- **Bookings**: Create and manage reservations
+- **Wishlists**: Save favorite properties
+- **Responsive Design**: Mobile-first approach with beautiful animations
+- **Real-time Data**: Connected to Xano backend
+- **Modern UI**: Built with Tailwind CSS and Framer Motion
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
 
-**Use Lovable**
+### Frontend
+- **React 18** with TypeScript
+- **Vite** for fast development
+- **Tailwind CSS** for styling
+- **Framer Motion** for animations
+- **React Router** for navigation
+- **React Query** for data fetching
+- **Lucide React** for icons
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1045204f-48b3-4284-b057-fc97ccd88620) and start prompting.
+### Backend
+- **Xano** for backend services
+- **PostgreSQL** database
+- **JWT Authentication**
+- **RESTful APIs**
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📋 Prerequisites
 
-**Use your preferred IDE**
+- Node.js 18+ 
+- npm or yarn
+- Xano account (free tier available)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Quick Start
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 1. Clone the Repository
 
-Follow these steps:
+```bash
+git clone <repository-url>
+cd airbnb-weweb
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 2. Install Dependencies
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 3. Set Up Xano Backend
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+The project is already configured to use the Xano backend at:
+- **Auth API**: `https://x8ki-letl-twmt.n7.xano.io/api:K84Lj_FE`
+- **Airbnb API**: `https://x8ki-letl-twmt.n7.xano.io/api:WFmTHjwy`
+
+### 4. Seed Sample Data (Optional)
+
+To populate the database with sample data, run:
+
+```bash
+node scripts/seed-data.js
+```
+
+This will create:
+- Sample users (john@example.com / password123)
+- Sample listings across different countries
+- Sample bookings and wishlists
+
+### 5. Start Development Server
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📱 Available Pages
 
-**Use GitHub Codespaces**
+- **Home** (`/`): Landing page with featured listings
+- **Explore** (`/explore`): Search and filter listings
+- **Listing Details** (`/listing/:id`): Individual property view
+- **Bookings** (`/bookings`): User's booking history
+- **Trips** (`/trips`): Upcoming and past trips
+- **Wishlists** (`/wishlists`): Saved properties
+- **Profile** (`/profile`): User profile and settings
+- **Host** (`/host`): Host dashboard (coming soon)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔧 API Endpoints
 
-## What technologies are used for this project?
+### Authentication
+- `POST /auth/signup` - User registration
+- `POST /auth/login` - User login
+- `GET /auth/me` - Get current user
 
-This project is built with:
+### Listings
+- `GET /listing` - Get all listings
+- `GET /listing/:id` - Get specific listing
+- `POST /listing` - Create new listing
+- `PATCH /listing/:id` - Update listing
+- `DELETE /listing/:id` - Delete listing
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Bookings
+- `GET /booking` - Get user bookings
+- `POST /booking` - Create booking
+- `PATCH /booking/:id` - Update booking
+- `DELETE /booking/:id` - Cancel booking
 
-## How can I deploy this project?
+### Wishlists
+- `GET /wishlist` - Get user wishlists
+- `POST /wishlist` - Create wishlist
+- `POST /wishlist_item` - Add to wishlist
+- `DELETE /wishlist_item/:id` - Remove from wishlist
 
-Simply open [Lovable](https://lovable.dev/projects/1045204f-48b3-4284-b057-fc97ccd88620) and click on Share -> Publish.
+## 🎨 Customization
 
-## Can I connect a custom domain to my Lovable project?
+### Styling
+The project uses Tailwind CSS. Customize colors, spacing, and components in:
+- `tailwind.config.ts` - Tailwind configuration
+- `src/index.css` - Global styles
 
-Yes, you can!
+### Components
+All UI components are in `src/components/ui/` using shadcn/ui patterns.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### API Configuration
+Update API endpoints in `src/lib/api.ts` if needed.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📱 Mobile Features
+
+- Responsive design for all screen sizes
+- Mobile bottom navigation
+- Touch-friendly interactions
+- Optimized images and loading
+
+## 🔐 Authentication Flow
+
+1. User signs up/logs in via AuthModal
+2. JWT token stored in localStorage
+3. Token automatically included in API requests
+4. Protected routes redirect to login if not authenticated
+
+## 🗄️ Database Schema
+
+### Users
+- id, name, email, password, phone, avatar, etc.
+
+### Listings
+- id, title, location, price, images, amenities, etc.
+
+### Bookings
+- id, user_id, listing_id, check_in, check_out, status, etc.
+
+### Wishlists
+- id, user_id, name, description, is_public, etc.
+
+## 🚀 Deployment
+
+### Frontend (Vercel/Netlify)
+```bash
+npm run build
+```
+
+### Backend
+The Xano backend is already deployed and ready to use.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is for educational purposes.
+
+## 🆘 Support
+
+If you encounter any issues:
+1. Check the browser console for errors
+2. Verify your Xano backend is running
+3. Ensure all dependencies are installed
+4. Check the API endpoints are accessible
+
+## 🎯 Next Steps
+
+- [ ] Add real-time messaging
+- [ ] Implement payment processing
+- [ ] Add review system
+- [ ] Create host dashboard
+- [ ] Add map integration
+- [ ] Implement search filters
+- [ ] Add photo upload functionality
+
+---
+
+Built with ❤️ using React, TypeScript, and Xano

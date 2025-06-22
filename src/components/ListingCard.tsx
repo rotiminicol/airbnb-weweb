@@ -8,7 +8,34 @@ interface ListingCardProps {
   listing: Listing;
 }
 
+const localImages = [
+  '/lovable-uploads/02b3fe4c-5a06-4ee4-bbb2-6ab901be6ecc.png',
+  '/lovable-uploads/067dfcc9-c1c2-43a8-9fa9-2907750cc6cc.png',
+  '/lovable-uploads/17378010-9fe6-41c6-adb6-65c2808116f0.png',
+  '/lovable-uploads/1d9f4ef3-7678-4f63-ae2b-f0388d9e0874.png',
+  '/lovable-uploads/2f0df201-e9f9-4395-b788-e404f25bd832.png',
+  '/lovable-uploads/4a3456c9-e8c0-46f5-8822-b205513d2057.png',
+  '/lovable-uploads/9b812bae-9900-4374-b108-d35b81a4ed8c.png',
+  '/lovable-uploads/ba48c5b8-024e-4aaf-91fc-7447ad07f7e1.png',
+  '/lovable-uploads/e8c2315f-ed84-47ff-9d7a-1c7da960b64a.png',
+  '/lovable-uploads/ff8d89b3-4a90-4f0f-a792-a6aedc294eaf.png',
+];
+
+const isValidUrl = (url: string | undefined): url is string => {
+  if (!url) return false;
+  try {
+    new URL(url);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
 const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
+  const imageSrc = isValidUrl(listing.image)
+    ? listing.image
+    : localImages[listing.id % localImages.length];
+
   return (
     <Link 
       to={`/listing/${listing.id}`}
@@ -22,7 +49,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
       >
         <div className="relative overflow-hidden">
           <motion.img
-            src={listing.image}
+            src={imageSrc}
             alt={listing.title}
             className="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-700"
             whileHover={{ scale: 1.08 }}
@@ -51,7 +78,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1 text-sm text-gray-500">
-              <span>{listing.reviews} reviews</span>
+              <span>{listing.reviews_count} reviews</span>
             </div>
             <div className="text-right">
               <span className="font-bold text-gray-900">${listing.price}</span>

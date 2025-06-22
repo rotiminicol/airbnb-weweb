@@ -3,7 +3,6 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Smartphone, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PaymentProgressModal from '../components/PaymentProgressModal';
-import { supabase } from '@/integrations/supabase/client';
 
 const Payment = () => {
   const location = useLocation();
@@ -19,12 +18,6 @@ const Payment = () => {
   const [bankTransferLoading, setBankTransferLoading] = useState(false);
 
   const bookingData = location.state;
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUserId(data.session?.user?.id || null);
-    });
-  }, []);
 
   if (!bookingData) {
     return (

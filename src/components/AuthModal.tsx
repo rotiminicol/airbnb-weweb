@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '../contexts/AuthContext';
+import { xanoAPI } from '../lib/api';
 
 interface AuthModalProps {
   type: 'login' | 'signup';
   onClose: () => void;
-  onAuth: (user: { name: string; email: string }) => void;
   onSwitchType: (type: 'login' | 'signup') => void;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ type, onClose, onAuth, onSwitchType }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ type, onClose, onSwitchType }) => {
+  const { login, signup } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -24,31 +25,22 @@ const AuthModal: React.FC<AuthModalProps> = ({ type, onClose, onAuth, onSwitchTy
     e.preventDefault();
     setError(null);
     setLoading(true);
-    if (type === 'signup' && !agreeToTerms) {
-      setLoading(false);
-      alert('Please agree to the terms and conditions');
-      return;
-    }
-    try {
-      let result;
-      if (type === 'signup') {
-        result = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { name } }
-        });
-      } else {
-        result = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
+    
+    if (type === 'signup') {
+      if (!agreeToTerms) {
+        setLoading(false);
+        setError('Please agree to the terms and conditions');
+        return;
       }
-      if (result.error) throw result.error;
-      const user = result.data.user;
-      onAuth({
-        name: user?.user_metadata?.name || user?.email?.split('@')[0] || '',
-        email: user?.email || email
-      });
+    }
+    
+    try {
+      if (type === 'signup') {
+        await signup(name, email, password);
+      } else {
+        await login(email, password);
+      }
+      onClose();
     } catch (err: any) {
       let msg = err.message || 'Authentication failed';
       if (msg.toLowerCase().includes('confirmation email')) {
@@ -60,18 +52,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ type, onClose, onAuth, onSwitchTy
     }
   };
 
-  const handleSocialAuth = async (provider: 'google' | 'apple' | 'facebook') => {
-    setError(null);
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider });
-      if (error) throw error;
-      // Supabase will redirect, so no need to call onAuth here
-    } catch (err: any) {
-      setError(err.message || 'Social login failed');
-    } finally {
-      setLoading(false);
+  const handleSocialAuth = (provider: 'google' | 'facebook') => {
+    const redirectUri = `${window.location.origin}/auth/callback/${provider}`;
+    let authUrl;
+
+    if (provider === 'google') {
+      authUrl = xanoAPI.getGoogleAuthUrl(redirectUri);
+    } else {
+      authUrl = xanoAPI.getFacebookAuthUrl(redirectUri);
     }
+    
+    window.location.href = authUrl;
   };
 
   return (

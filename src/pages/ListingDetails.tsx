@@ -2,28 +2,47 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Heart, Share, MapPin, Wifi, Car, Home, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { listings } from '../data/listings';
 import Header from '../components/Header';
 import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
+import { useListing } from '../hooks/useListings';
 
 const ListingDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(1);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [openModal, setOpenModal] = useState<
     | { type: 'auth'; mode: 'login' | 'signup' }
     | null
   >(null);
 
-  const listing = listings.find(l => l.id === id);
+  // Fetch listing from Xano API
+  const { data: listing, isLoading, error } = useListing(Number(id));
 
-  if (!listing) {
-    return <div>Listing not found</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading listing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !listing) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Listing not found</h1>
+          <p className="text-gray-600">The listing you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
   }
 
   const nextImage = () => {
@@ -39,6 +58,11 @@ const ListingDetails = () => {
   };
 
   const handleBooking = () => {
+    if (!isAuthenticated) {
+      setOpenModal({ type: 'auth', mode: 'login' });
+      return;
+    }
+
     if (!checkIn || !checkOut) {
       alert('Please select check-in and check-out dates');
       return;
@@ -59,24 +83,10 @@ const ListingDetails = () => {
     });
   };
 
-  const handleAuth = (userData: { name: string; email: string }) => {
-    setUser(userData);
-    setIsLoggedIn(true);
-    setOpenModal(null);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setIsLoggedIn(false);
-  };
-
   return (
     <div className="min-h-screen bg-white">
       <Header 
-        isLoggedIn={isLoggedIn}
-        user={user}
         onAuthModal={(mode) => setOpenModal({ type: 'auth', mode })}
-        onLogout={handleLogout}
       />
       
       <div className="container mx-auto px-4 py-6">
@@ -88,7 +98,7 @@ const ListingDetails = () => {
               <div className="flex items-center space-x-1">
                 <Star className="w-4 h-4 fill-current text-yellow-500" />
                 <span className="font-medium">{listing.rating}</span>
-                <span className="text-gray-600">({listing.reviews} reviews)</span>
+                <span className="text-gray-600">({listing.reviews_count} reviews)</span>
               </div>
               <div className="flex items-center space-x-1 text-gray-600">
                 <MapPin className="w-4 h-4" />
@@ -153,14 +163,14 @@ const ListingDetails = () => {
             <div className="border-b pb-6 mb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Entire place hosted by {listing.host}</h2>
+                  <h2 className="text-xl font-semibold mb-2">Entire place hosted by Host</h2>
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Users className="w-4 h-4" />
-                    <span>Up to {guests} guests</span>
+                    <span>Up to {listing.max_guests} guests</span>
                   </div>
                 </div>
                 <div className="w-12 h-12 bg-coral-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">{listing.host.charAt(0)}</span>
+                  <span className="text-white font-bold">H</span>
                 </div>
               </div>
             </div>
@@ -196,7 +206,7 @@ const ListingDetails = () => {
                   <div className="flex items-center space-x-1 text-sm">
                     <Star className="w-4 h-4 fill-current text-yellow-500" />
                     <span className="font-medium">{listing.rating}</span>
-                    <span className="text-gray-600">({listing.reviews})</span>
+                    <span className="text-gray-600">({listing.reviews_count})</span>
                   </div>
                 </div>
 
@@ -275,7 +285,6 @@ const ListingDetails = () => {
         <AuthModal
           type={openModal.mode}
           onClose={() => setOpenModal(null)}
-          onAuth={handleAuth}
           onSwitchType={(mode) => setOpenModal({ type: 'auth', mode })}
         />
       )}

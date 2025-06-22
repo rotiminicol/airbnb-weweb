@@ -2,20 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
-import { listings } from '../data/listings';
 import AuthModal from '../components/AuthModal';
-import { supabase } from '@/integrations/supabase/client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
+import { useListings } from '../hooks/useListings';
 
 const Explore = () => {
+  const { isAuthenticated } = useAuth();
   const [showMap, setShowMap] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [openModal, setOpenModal] = useState<
     | { type: 'auth'; mode: 'login' | 'signup' }
     | null
   >(null);
+  const [selectedCountry, setSelectedCountry] = useState<string>('All');
+
+  // Fetch listings from Xano API
+  const { data: listings = [], isLoading, error } = useListings({
+    country: selectedCountry === 'All' ? undefined : selectedCountry,
+    search: searchQuery || undefined,
+    minPrice: priceRange[0],
+    maxPrice: priceRange[1],
+  });
 
   const filteredListings = listings.filter(listing => 
     listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -24,59 +33,19 @@ const Explore = () => {
     listing.price >= priceRange[0] && listing.price <= priceRange[1]
   );
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session && data.session.user) {
-        setUser({
-          name: data.session.user.user_metadata?.name || data.session.user.email.split('@')[0],
-          email: data.session.user.email
-        });
-        setIsLoggedIn(true);
-      }
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (['SIGNED_OUT', 'USER_DELETED'].includes(event)) {
-        setUser(null);
-        setIsLoggedIn(false);
-      } else if (session && session.user) {
-        setUser({
-          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-          email: session.user.email
-        });
-        setIsLoggedIn(true);
-      }
-    });
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleAuth = (userData: { name: string; email: string }) => {
-    setUser(userData);
-    setIsLoggedIn(true);
-    setOpenModal(null);
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setIsLoggedIn(false);
-  };
+  // Get unique countries from listings
+  const countryNames = ['All', ...Array.from(new Set(listings.map(l => l.country)))];
 
   return (
     <div className="min-h-screen bg-white">
       <Header 
-        isLoggedIn={isLoggedIn}
-        user={user}
         onAuthModal={(mode) => setOpenModal({ type: 'auth', mode })}
-        onLogout={handleLogout}
       />
 
       {openModal?.type === 'auth' && (
         <AuthModal
           type={openModal.mode}
           onClose={() => setOpenModal(null)}
-          onAuth={handleAuth}
           onSwitchType={(mode) => setOpenModal({ type: 'auth', mode })}
         />
       )}
@@ -156,6 +125,20 @@ const Explore = () => {
               </span>
             </div>
           </div>
+
+          {/* Country/Category Filter */}
+          <div className="sticky top-0 z-10 bg-white py-4 flex flex-wrap gap-2 justify-center mb-6 border-b">
+            {countryNames.map((country) => (
+              <button
+                key={country}
+                onClick={() => setSelectedCountry(country)}
+                className={`px-3 py-1 rounded-full font-medium border transition-all duration-200 ${selectedCountry === country ? 'bg-red-500 text-white shadow scale-105' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                aria-current={selectedCountry === country}
+              >
+                {country}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className={`grid ${showMap ? 'lg:grid-cols-2' : 'grid-cols-1'} gap-6 lg:gap-8`}>
@@ -167,11 +150,20 @@ const Explore = () => {
               </h2>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {filteredListings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedCountry + searchQuery + priceRange.join('-')}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
+              >
+                {filteredListings.map((listing) => (
+                  <ListingCard key={listing.id} listing={listing} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Simple Map Placeholder */}

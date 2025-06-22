@@ -3,45 +3,39 @@ import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import AuthModal from '../components/AuthModal';
-import { listings } from '../data/listings';
-import { supabase } from '@/integrations/supabase/client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
+import { useListings } from '../hooks/useListings';
 
 const Index = () => {
+  const { isAuthenticated } = useAuth();
   const [openModal, setOpenModal] = useState<
     | { type: 'auth'; mode: 'login' | 'signup' }
     | null
   >(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
 
-  const featuredListings = listings.slice(0, 8);
+  // Fetch all listings from Xano API
+  const { data: allListings = [], isLoading, error } = useListings();
 
+  // Group listings by country
+  const listingsByCountry = allListings.reduce((acc, listing) => {
+    if (!acc[listing.country]) {
+      acc[listing.country] = [];
+    }
+    acc[listing.country].push(listing);
+    return acc;
+  }, {} as Record<string, typeof allListings>);
+
+  const countryNames = Object.keys(listingsByCountry);
+  const [selectedCountry, setSelectedCountry] = useState<string>(countryNames[0] || '');
+  const featuredListings = selectedCountry ? listingsByCountry[selectedCountry] || [] : allListings.slice(0, 8);
+
+  // Update selected country when data loads
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session && data.session.user) {
-        setUser({
-          name: data.session.user.user_metadata?.name || data.session.user.email.split('@')[0],
-          email: data.session.user.email
-        });
-        setIsLoggedIn(true);
-      }
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (['SIGNED_OUT', 'USER_DELETED'].includes(event)) {
-        setUser(null);
-        setIsLoggedIn(false);
-      } else if (session && session.user) {
-        setUser({
-          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-          email: session.user.email
-        });
-        setIsLoggedIn(true);
-      }
-    });
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
+    if (countryNames.length > 0 && !selectedCountry) {
+      setSelectedCountry(countryNames[0]);
+    }
+  }, [countryNames, selectedCountry]);
 
   const handleAuth = (userData: { name: string; email: string }) => {
     setUser(userData);
@@ -50,7 +44,6 @@ const Index = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
     setUser(null);
     setIsLoggedIn(false);
   };
@@ -58,10 +51,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <Header 
-        isLoggedIn={isLoggedIn}
-        user={user}
         onAuthModal={(mode) => setOpenModal({ type: 'auth', mode })}
-        onLogout={handleLogout}
       />
 
       {/* Hero Section with Background Image */}
@@ -145,33 +135,112 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Listings */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Featured Stays</h2>
-            <Link
-              to="/explore"
-              className="text-red-500 hover:text-red-600 font-medium flex items-center space-x-2 group"
-            >
-              <span>View all</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
-            </Link>
+      {/* Loading State */}
+      {isLoading && (
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading amazing places...</p>
+            </div>
           </div>
+        </section>
+      )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {featuredListings.map((listing, index) => (
-              <div
-                key={listing.id}
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
+      {/* Error State */}
+      {error && (
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center">
+              <p className="text-red-500 mb-4">Failed to load listings</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
               >
-                <ListingCard listing={listing} />
-              </div>
-            ))}
+                Try Again
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Listings Display */}
+      {!isLoading && !error && allListings.length > 0 && (
+        <>
+          {/* Country/Category Selector */}
+          <section className="py-8">
+            <div className="flex flex-wrap gap-4 justify-center mb-8">
+              {countryNames.map((country) => (
+                <button
+                  key={country}
+                  onClick={() => setSelectedCountry(country)}
+                  className={`px-4 py-2 rounded-full font-semibold border transition-all duration-200 ${selectedCountry === country ? 'bg-red-500 text-white shadow-lg scale-105' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
+                  aria-current={selectedCountry === country}
+                >
+                  {country}
+                </button>
+              ))}
+            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedCountry}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
+                {featuredListings.map((listing) => (
+                  <ListingCard key={listing.id} listing={listing} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </section>
+
+          {/* Featured Listings */}
+          <section className="py-20 bg-gray-50">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="flex items-center justify-between mb-12">
+                <h2 className="text-3xl font-bold text-gray-900">Featured Stays</h2>
+                <Link
+                  to="/explore"
+                  className="text-red-500 hover:text-red-600 font-medium flex items-center space-x-2 group"
+                >
+                  <span>View all</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {allListings.slice(0, 8).map((listing, index) => (
+                  <div
+                    key={listing.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <ListingCard listing={listing} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && allListings.length === 0 && (
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🏠</span>
+                </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No listings available</h3>
+              <p className="text-gray-600 mb-6">Check back soon for amazing places to stay</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Simple Map Section */}
       <section className="py-20 bg-white">
@@ -254,7 +323,6 @@ const Index = () => {
         <AuthModal
           type={openModal.mode}
           onClose={() => setOpenModal(null)}
-          onAuth={handleAuth}
           onSwitchType={(mode) => setOpenModal({ type: 'auth', mode })}
         />
       )}
