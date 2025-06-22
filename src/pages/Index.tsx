@@ -1,19 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import AuthModal from '../components/AuthModal';
 import { listings } from '../data/listings';
-import { Listing } from '../types';
 
 const Index = () => {
   const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
 
-  // Use static listings data for now since Supabase table doesn't exist yet
   const featuredListings = listings.slice(0, 8);
 
   const handleAuth = (userData: { name: string; email: string }) => {
@@ -29,13 +26,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Floating gradient blobs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-coral-200 to-coral-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-8 -left-20 w-80 h-80 bg-gradient-to-br from-coral-300 to-coral-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute -top-8 left-20 w-80 h-80 bg-gradient-to-br from-coral-100 to-coral-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
-
       <Header 
         isLoggedIn={isLoggedIn}
         user={user}
@@ -43,57 +33,81 @@ const Index = () => {
         onLogout={handleLogout}
       />
 
-      {/* Hero Section with Parallax */}
+      {/* Hero Section with Background Image */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div 
-          className="absolute inset-0 bg-gradient-to-r from-coral-600 via-coral-500 to-coral-400"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Cpath d="m0 40 40-40h-40v40zm40 0v-40h-40l40 40z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2080&q=80')`
           }}
         />
         
-        <div className="relative z-10 text-center text-white px-4 animate-fade-in">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-scale-in">
+        <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6">
             Belong Anywhere
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto opacity-90">
+          <p className="text-xl md:text-2xl mb-8 opacity-90">
             Discover unique homes and experiences around the world
           </p>
           <Link
             to="/explore"
-            className="inline-block bg-white text-coral-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="inline-block bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors shadow-lg hover:shadow-xl"
           >
             Start Exploring
           </Link>
         </div>
       </section>
 
-      {/* Featured Categories */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+      {/* Explore by Category - Professional Design */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-16 text-gray-900">
             Explore by Category
           </h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { name: 'Beachfront', icon: '🏖️', count: '200+' },
-              { name: 'Cabins', icon: '🏕️', count: '150+' },
-              { name: 'Trending', icon: '🔥', count: '300+' },
-              { name: 'Luxury', icon: '✨', count: '100+' },
+              { 
+                name: 'Beachfront', 
+                icon: '🏖️', 
+                count: '200+',
+                image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+              },
+              { 
+                name: 'Cabins', 
+                icon: '🏕️', 
+                count: '150+',
+                image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+              },
+              { 
+                name: 'Trending', 
+                icon: '🔥', 
+                count: '300+',
+                image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+              },
+              { 
+                name: 'Luxury', 
+                icon: '✨', 
+                count: '100+',
+                image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+              },
             ].map((category, index) => (
               <div
                 key={category.name}
-                className="group p-6 rounded-2xl border border-gray-200 hover:border-coral-300 hover:shadow-lg transition-all duration-300 cursor-pointer animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="group cursor-pointer"
               >
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                  {category.icon}
+                <div className="relative aspect-square rounded-xl overflow-hidden mb-4 shadow-md group-hover:shadow-xl transition-shadow duration-300">
+                  <img 
+                    src={category.image} 
+                    alt={category.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-colors duration-300" />
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="font-semibold text-lg">{category.name}</h3>
+                    <p className="text-sm opacity-90">{category.count} properties</p>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 group-hover:text-coral-600 transition-colors">
-                  {category.name}
-                </h3>
-                <p className="text-sm text-gray-600">{category.count} properties</p>
               </div>
             ))}
           </div>
@@ -101,13 +115,13 @@ const Index = () => {
       </section>
 
       {/* Featured Listings */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between mb-12">
             <h2 className="text-3xl font-bold text-gray-900">Featured Stays</h2>
             <Link
               to="/explore"
-              className="text-coral-600 hover:text-coral-700 font-medium flex items-center space-x-2 group"
+              className="text-red-500 hover:text-red-600 font-medium flex items-center space-x-2 group"
             >
               <span>View all</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
@@ -128,9 +142,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Simple Map Section - No external dependencies */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
+      {/* Simple Map Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
             Discover Destinations
           </h2>
@@ -142,7 +156,7 @@ const Index = () => {
               <p className="text-gray-600">Explore destinations worldwide</p>
               <Link
                 to="/explore"
-                className="inline-block mt-4 bg-coral-500 text-white px-6 py-2 rounded-lg hover:bg-coral-600 transition-colors"
+                className="inline-block mt-4 bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
               >
                 View on Map
               </Link>
@@ -152,53 +166,53 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="container mx-auto px-4">
+      <footer className="bg-gray-100 text-gray-700 py-16 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">AirCover</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Safety information</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Supporting people with disabilities</a></li>
+              <h3 className="font-semibold mb-4 text-gray-900">Support</h3>
+              <ul className="space-y-3">
+                <li><Link to="/help-center" className="hover:text-gray-900 transition-colors">Help Center</Link></li>
+                <li><Link to="/aircover" className="hover:text-gray-900 transition-colors">AirCover</Link></li>
+                <li><Link to="/safety" className="hover:text-gray-900 transition-colors">Safety information</Link></li>
+                <li><Link to="/accessibility" className="hover:text-gray-900 transition-colors">Supporting people with disabilities</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Community</h3>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">Airbnb.org: disaster relief housing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Combating discrimination</a></li>
+              <h3 className="font-semibold mb-4 text-gray-900">Community</h3>
+              <ul className="space-y-3">
+                <li><Link to="/disaster-relief" className="hover:text-gray-900 transition-colors">Airbnb.org: disaster relief housing</Link></li>
+                <li><Link to="/anti-discrimination" className="hover:text-gray-900 transition-colors">Combating discrimination</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Hosting</h3>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">Airbnb your home</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">AirCover for Hosts</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Hosting resources</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community forum</a></li>
+              <h3 className="font-semibold mb-4 text-gray-900">Hosting</h3>
+              <ul className="space-y-3">
+                <li><Link to="/host" className="hover:text-gray-900 transition-colors">Airbnb your home</Link></li>
+                <li><Link to="/host-protection" className="hover:text-gray-900 transition-colors">AirCover for Hosts</Link></li>
+                <li><Link to="/hosting-resources" className="hover:text-gray-900 transition-colors">Hosting resources</Link></li>
+                <li><Link to="/community-forum" className="hover:text-gray-900 transition-colors">Community forum</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Airbnb</h3>
-              <ul className="space-y-2 text-gray-300">
-                <li><a href="#" className="hover:text-white transition-colors">Newsroom</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">New features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Investors</a></li>
+              <h3 className="font-semibold mb-4 text-gray-900">Airbnb</h3>
+              <ul className="space-y-3">
+                <li><Link to="/newsroom" className="hover:text-gray-900 transition-colors">Newsroom</Link></li>
+                <li><Link to="/features" className="hover:text-gray-900 transition-colors">New features</Link></li>
+                <li><Link to="/careers" className="hover:text-gray-900 transition-colors">Careers</Link></li>
+                <li><Link to="/investors" className="hover:text-gray-900 transition-colors">Investors</Link></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="border-t border-gray-300 pt-8 flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-coral-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">A</span>
               </div>
-              <span className="text-xl font-bold">airbnb</span>
+              <span className="text-xl font-bold text-gray-900">airbnb</span>
             </div>
-            <div className="text-gray-400 text-sm">
+            <div className="text-gray-600 text-sm">
               © 2024 Airbnb, Inc. All rights reserved.
             </div>
           </div>

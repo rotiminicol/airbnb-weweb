@@ -24,7 +24,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ type, onClose, onAuth, onSwitchTy
       return;
     }
     
-    // Simulate authentication
     onAuth({
       name: type === 'signup' ? name : email.split('@')[0],
       email
@@ -32,7 +31,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ type, onClose, onAuth, onSwitchTy
   };
 
   const handleSocialAuth = (provider: string) => {
-    // Simulate social authentication
     onAuth({
       name: `User from ${provider}`,
       email: `user@${provider.toLowerCase()}.com`
@@ -41,150 +39,152 @@ const AuthModal: React.FC<AuthModalProps> = ({ type, onClose, onAuth, onSwitchTy
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md animate-scale-in">
+      <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden animate-scale-in">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h2 className="text-xl font-semibold text-gray-900">
             {type === 'login' ? 'Log in' : 'Sign up'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <h3 className="text-2xl font-semibold mb-6">
-            Welcome to Airbnb
-          </h3>
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+          <div className="p-6">
+            <h3 className="text-2xl font-semibold mb-6 text-gray-900">
+              Welcome to Airbnb
+            </h3>
 
-          {/* Social Login Buttons */}
-          <div className="space-y-3 mb-6">
-            <button
-              onClick={() => handleSocialAuth('Google')}
-              className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="w-5 h-5 bg-red-500 rounded-sm flex items-center justify-center">
-                <span className="text-white text-xs font-bold">G</span>
-              </div>
-              <span>Continue with Google</span>
-            </button>
-
-            <button
-              onClick={() => handleSocialAuth('Apple')}
-              className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="w-5 h-5 bg-black rounded-sm flex items-center justify-center">
-                <span className="text-white text-xs font-bold">🍎</span>
-              </div>
-              <span>Continue with Apple</span>
-            </button>
-
-            <button
-              onClick={() => handleSocialAuth('Facebook')}
-              className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="w-5 h-5 bg-blue-600 rounded-sm flex items-center justify-center">
-                <span className="text-white text-xs font-bold">f</span>
-              </div>
-              <span>Continue with Facebook</span>
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-4 text-sm text-gray-500">or</span>
-            <div className="flex-1 border-t border-gray-300"></div>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {type === 'signup' && (
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-transparent"
-                  required
-                />
-              </div>
-            )}
-
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-transparent"
-                required
-              />
+            {/* Social Login Buttons */}
+            <div className="space-y-3 mb-6">
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => handleSocialAuth('Google')}
+                className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                <div className="w-5 h-5 bg-red-500 rounded-sm flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">G</span>
+                </div>
+                <span>Continue with Google</span>
+              </button>
+
+              <button
+                onClick={() => handleSocialAuth('Apple')}
+                className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+              >
+                <div className="w-5 h-5 bg-black rounded-sm flex items-center justify-center">
+                  <span className="text-white text-xs">🍎</span>
+                </div>
+                <span>Continue with Apple</span>
+              </button>
+
+              <button
+                onClick={() => handleSocialAuth('Facebook')}
+                className="w-full flex items-center justify-center space-x-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+              >
+                <div className="w-5 h-5 bg-blue-600 rounded-sm flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">f</span>
+                </div>
+                <span>Continue with Facebook</span>
               </button>
             </div>
 
-            {type === 'signup' && (
-              <div className="flex items-start space-x-3">
+            {/* Divider */}
+            <div className="flex items-center my-6">
+              <div className="flex-1 border-t border-gray-300"></div>
+              <span className="px-4 text-sm text-gray-500">or</span>
+              <div className="flex-1 border-t border-gray-300"></div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {type === 'signup' && (
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
-                  type="checkbox"
-                  id="terms"
-                  checked={agreeToTerms}
-                  onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-coral-500 border-gray-300 rounded focus:ring-coral-500"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
                 />
-                <label htmlFor="terms" className="text-sm text-gray-600">
-                  I agree to Airbnb's{' '}
-                  <a href="#" className="text-coral-500 hover:underline">Terms of Service</a>,{' '}
-                  <a href="#" className="text-coral-500 hover:underline">Privacy Policy</a>, and{' '}
-                  <a href="#" className="text-coral-500 hover:underline">Nondiscrimination Policy</a>
-                </label>
               </div>
-            )}
 
-            <Button
-              type="submit"
-              className="w-full bg-coral-500 hover:bg-coral-600 text-white py-3 rounded-lg font-medium text-lg transition-colors"
-            >
-              {type === 'login' ? 'Log in' : 'Sign up'}
-            </Button>
-          </form>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
 
-          {/* Switch Auth Type */}
-          <div className="mt-6 text-center">
-            <span className="text-gray-600">
-              {type === 'login' ? "Don't have an account?" : 'Already have an account?'}
-            </span>
-            <button
-              onClick={() => onSwitchType(type === 'login' ? 'signup' : 'login')}
-              className="ml-2 text-coral-500 hover:text-coral-600 font-medium"
-            >
-              {type === 'login' ? 'Sign up' : 'Log in'}
-            </button>
+              {type === 'signup' && (
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={agreeToTerms}
+                    onChange={(e) => setAgreeToTerms(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-600">
+                    I agree to Airbnb's{' '}
+                    <a href="#" className="text-red-500 hover:underline">Terms of Service</a>,{' '}
+                    <a href="#" className="text-red-500 hover:underline">Privacy Policy</a>, and{' '}
+                    <a href="#" className="text-red-500 hover:underline">Nondiscrimination Policy</a>
+                  </label>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg font-medium text-lg transition-colors"
+              >
+                {type === 'login' ? 'Log in' : 'Sign up'}
+              </Button>
+            </form>
+
+            {/* Switch Auth Type */}
+            <div className="mt-6 text-center pb-6">
+              <span className="text-gray-600">
+                {type === 'login' ? "Don't have an account?" : 'Already have an account?'}
+              </span>
+              <button
+                onClick={() => onSwitchType(type === 'login' ? 'signup' : 'login')}
+                className="ml-2 text-red-500 hover:text-red-600 font-medium"
+              >
+                {type === 'login' ? 'Sign up' : 'Log in'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

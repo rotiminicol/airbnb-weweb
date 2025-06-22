@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Filter, MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
@@ -40,7 +40,7 @@ const Explore = () => {
         onLogout={handleLogout}
       />
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Search and Filters */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -51,7 +51,7 @@ const Explore = () => {
                 placeholder="Search destinations, properties..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
             </div>
             <button className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
@@ -60,7 +60,7 @@ const Explore = () => {
             </button>
             <button
               onClick={() => setShowMap(!showMap)}
-              className="flex items-center space-x-2 px-6 py-3 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors"
+              className="flex items-center space-x-2 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
             >
               <MapPin className="w-5 h-5" />
               <span>{showMap ? 'Hide map' : 'Show map'}</span>

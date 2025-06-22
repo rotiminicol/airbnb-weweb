@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Menu, X, User, LogOut, ChevronDown, Search, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Search, Globe, Menu, User, MapPin } from 'lucide-react';
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -11,98 +11,181 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onAuthModal, onLogout }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isHostMenuOpen, setIsHostMenuOpen] = useState(false);
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showHostDropdown, setShowHostDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const languages = [
+    { code: 'en', name: 'English', currency: 'USD' },
+    { code: 'es', name: 'Español', currency: 'EUR' },
+    { code: 'fr', name: 'Français', currency: 'EUR' },
+    { code: 'de', name: 'Deutsch', currency: 'EUR' },
+    { code: 'it', name: 'Italiano', currency: 'EUR' },
+  ];
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
-          {/* Airbnb Logo */}
+          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-coral-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">A</span>
             </div>
-            <h1 className="text-2xl font-bold text-coral-500 hidden sm:block">airbnb</h1>
+            <span className="text-xl font-bold text-red-500">airbnb</span>
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:flex items-center bg-white border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow duration-200 max-w-md w-full mx-8">
-            <div className="flex-1 px-6 py-3">
-              <input
-                type="text"
-                placeholder="Start your search"
-                className="w-full text-sm placeholder-gray-500 border-none outline-none"
-              />
+          {/* Search Bar */}
+          <div className="hidden md:flex items-center flex-1 max-w-2xl mx-8">
+            <div className="w-full border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center">
+                <div className="flex-1 px-6 py-3">
+                  <input
+                    type="text"
+                    placeholder="Where are you going?"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full outline-none text-sm font-medium"
+                  />
+                </div>
+                <div className="border-l border-gray-300 px-6 py-3">
+                  <input
+                    type="text"
+                    placeholder="Check in / Check out"
+                    className="w-full outline-none text-sm"
+                  />
+                </div>
+                <div className="border-l border-gray-300 px-6 py-3">
+                  <input
+                    type="text"
+                    placeholder="Add guests"
+                    className="w-full outline-none text-sm"
+                  />
+                </div>
+                <button className="bg-red-500 text-white p-3 rounded-full mr-2 hover:bg-red-600 transition-colors">
+                  <Search className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <button className="bg-coral-500 text-white p-2 rounded-full m-2 hover:bg-coral-600 transition-colors">
-              <Search size={16} />
-            </button>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            {/* Host Menu */}
+          {/* Right Side */}
+          <div className="flex items-center space-x-4">
+            {/* Host Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsHostMenuOpen(!isHostMenuOpen)}
-                className="flex items-center space-x-1 text-gray-700 hover:text-coral-600 transition-colors py-2 px-3 rounded-lg hover:bg-gray-50"
+                onClick={() => setShowHostDropdown(!showHostDropdown)}
+                className="text-gray-700 hover:text-gray-900 font-medium px-3 py-2 rounded-full hover:bg-gray-100 transition-colors"
               >
-                <span className="font-medium">Airbnb your home</span>
-                <ChevronDown size={16} />
+                Airbnb your home
               </button>
-              
-              {isHostMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border py-2 z-50">
-                  <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                    <div className="font-medium">List your space</div>
-                    <div className="text-sm text-gray-500">Earn extra income hosting</div>
-                  </a>
-                  <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                    <div className="font-medium">Host an experience</div>
-                    <div className="text-sm text-gray-500">Create unique activities</div>
-                  </a>
-                  <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
-                    <div className="font-medium">Host resources</div>
-                    <div className="text-sm text-gray-500">Get hosting tips and tools</div>
-                  </a>
+              {showHostDropdown && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  <Link
+                    to="/host"
+                    className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                    onClick={() => setShowHostDropdown(false)}
+                  >
+                    <div className="font-medium text-gray-900">List your space</div>
+                    <div className="text-sm text-gray-600">Earn extra income by hosting</div>
+                  </Link>
+                  <Link
+                    to="/host-experience"
+                    className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                    onClick={() => setShowHostDropdown(false)}
+                  >
+                    <div className="font-medium text-gray-900">Host an experience</div>
+                    <div className="text-sm text-gray-600">Share your passion with guests</div>
+                  </Link>
+                  <Link
+                    to="/hosting-resources"
+                    className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                    onClick={() => setShowHostDropdown(false)}
+                  >
+                    <div className="font-medium text-gray-900">Hosting resources</div>
+                    <div className="text-sm text-gray-600">Learn tips from other hosts</div>
+                  </Link>
                 </div>
               )}
             </div>
 
-            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <Globe size={18} className="text-gray-700" />
-            </button>
+            {/* Language/Region Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                className="p-3 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Globe className="w-4 h-4 text-gray-700" />
+              </button>
+              {showLanguageDropdown && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="p-4 border-b border-gray-200">
+                    <h3 className="font-semibold text-gray-900 mb-2">Choose a language and region</h3>
+                  </div>
+                  <div className="p-4 space-y-2 max-h-60 overflow-y-auto">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        className="w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowLanguageDropdown(false)}
+                      >
+                        <div className="font-medium text-gray-900">{lang.name}</div>
+                        <div className="text-sm text-gray-600">{lang.currency}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* User Menu */}
             <div className="relative">
               <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-2 border border-gray-300 rounded-full py-2 pl-3 pr-2 hover:shadow-md transition-shadow"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center space-x-2 border border-gray-300 rounded-full py-2 px-3 hover:shadow-md transition-shadow"
               >
-                <Menu size={16} className="text-gray-700" />
+                <Menu className="w-4 h-4 text-gray-700" />
                 <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                  <User size={16} className="text-white" />
+                  <User className="w-4 h-4 text-white" />
                 </div>
               </button>
-              
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border py-2 z-50">
-                  {isLoggedIn && user ? (
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                  {isLoggedIn ? (
                     <>
-                      <div className="px-4 py-3 border-b">
-                        <p className="font-medium text-gray-900">{user.name}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <div className="font-medium text-gray-900">{user?.name}</div>
+                        <div className="text-sm text-gray-600">{user?.email}</div>
                       </div>
-                      <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">Messages</a>
-                      <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">Trips</a>
-                      <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">Wishlists</a>
-                      <div className="border-t my-2"></div>
-                      <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">Account</a>
+                      <Link
+                        to="/trips"
+                        className="block px-4 py-2 hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Trips
+                      </Link>
+                      <Link
+                        to="/wishlists"
+                        className="block px-4 py-2 hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Wishlists
+                      </Link>
+                      <Link
+                        to="/account"
+                        className="block px-4 py-2 hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Account
+                      </Link>
+                      <hr className="my-2" />
                       <button
-                        onClick={onLogout}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => {
+                          onLogout();
+                          setShowUserMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors"
                       >
                         Log out
                       </button>
@@ -112,104 +195,43 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onAuthModal, onLogout
                       <button
                         onClick={() => {
                           onAuthModal('signup');
-                          setIsUserMenuOpen(false);
+                          setShowUserMenu(false);
                         }}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors font-medium"
                       >
                         Sign up
                       </button>
                       <button
                         onClick={() => {
                           onAuthModal('login');
-                          setIsUserMenuOpen(false);
+                          setShowUserMenu(false);
                         }}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors"
                       >
                         Log in
                       </button>
-                      <div className="border-t my-2"></div>
-                      <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">Gift cards</a>
-                      <a href="#" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">Help Center</a>
+                      <hr className="my-2" />
+                      <Link
+                        to="/host"
+                        className="block px-4 py-2 hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Airbnb your home
+                      </Link>
+                      <Link
+                        to="/help-center"
+                        className="block px-4 py-2 hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Help Center
+                      </Link>
                     </>
                   )}
                 </div>
               )}
             </div>
           </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
-
-        {/* Mobile Search Bar */}
-        <div className="md:hidden pb-4">
-          <div className="flex items-center bg-white border border-gray-300 rounded-full shadow-sm">
-            <div className="flex-1 px-4 py-3">
-              <input
-                type="text"
-                placeholder="Where are you going?"
-                className="w-full text-sm placeholder-gray-500 border-none outline-none"
-              />
-            </div>
-            <button className="bg-coral-500 text-white p-2 rounded-full m-2">
-              <Search size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t bg-white py-4">
-            <nav className="flex flex-col space-y-4">
-              <Link to="/explore" className="text-gray-700 hover:text-coral-600 transition-colors font-medium">Explore</Link>
-              <a href="#" className="text-gray-700 hover:text-coral-600 transition-colors">Airbnb your home</a>
-              
-              <div className="border-t pt-4">
-                {isLoggedIn && user ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2 text-gray-700">
-                      <User size={20} />
-                      <span className="font-medium">{user.name}</span>
-                    </div>
-                    <button
-                      onClick={onLogout}
-                      className="flex items-center space-x-2 text-gray-700 hover:text-coral-600 transition-colors"
-                    >
-                      <LogOut size={16} />
-                      <span>Log out</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => {
-                        onAuthModal('login');
-                        setIsMenuOpen(false);
-                      }}
-                      className="block w-full text-left text-gray-700 hover:text-coral-600 transition-colors"
-                    >
-                      Log in
-                    </button>
-                    <button
-                      onClick={() => {
-                        onAuthModal('signup');
-                        setIsMenuOpen(false);
-                      }}
-                      className="block w-full bg-coral-500 text-white px-4 py-2 rounded-lg hover:bg-coral-600 transition-colors"
-                    >
-                      Sign up
-                    </button>
-                  </div>
-                )}
-              </div>
-            </nav>
-          </div>
-        )}
       </div>
     </header>
   );
