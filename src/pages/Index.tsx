@@ -1,25 +1,56 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import AuthModal from '../components/AuthModal';
 import { listings } from '../data/listings';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
-  const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
+  const [openModal, setOpenModal] = useState<
+    | { type: 'auth'; mode: 'login' | 'signup' }
+    | null
+  >(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
 
   const featuredListings = listings.slice(0, 8);
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && data.session.user) {
+        setUser({
+          name: data.session.user.user_metadata?.name || data.session.user.email.split('@')[0],
+          email: data.session.user.email
+        });
+        setIsLoggedIn(true);
+      }
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (['SIGNED_OUT', 'USER_DELETED'].includes(event)) {
+        setUser(null);
+        setIsLoggedIn(false);
+      } else if (session && session.user) {
+        setUser({
+          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+          email: session.user.email
+        });
+        setIsLoggedIn(true);
+      }
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
   const handleAuth = (userData: { name: string; email: string }) => {
     setUser(userData);
     setIsLoggedIn(true);
-    setAuthModal(null);
+    setOpenModal(null);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setIsLoggedIn(false);
   };
@@ -29,7 +60,7 @@ const Index = () => {
       <Header 
         isLoggedIn={isLoggedIn}
         user={user}
-        onAuthModal={setAuthModal}
+        onAuthModal={(mode) => setOpenModal({ type: 'auth', mode })}
         onLogout={handleLogout}
       />
 
@@ -219,12 +250,12 @@ const Index = () => {
         </div>
       </footer>
 
-      {authModal && (
+      {openModal?.type === 'auth' && (
         <AuthModal
-          type={authModal}
-          onClose={() => setAuthModal(null)}
+          type={openModal.mode}
+          onClose={() => setOpenModal(null)}
           onAuth={handleAuth}
-          onSwitchType={(type) => setAuthModal(type)}
+          onSwitchType={(mode) => setOpenModal({ type: 'auth', mode })}
         />
       )}
     </div>

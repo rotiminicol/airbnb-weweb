@@ -1,9 +1,10 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import { listings } from '../data/listings';
+import AuthModal from '../components/AuthModal';
+import { supabase } from '@/integrations/supabase/client';
 
 const Explore = () => {
   const [showMap, setShowMap] = useState(false);
@@ -11,7 +12,10 @@ const Explore = () => {
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
+  const [openModal, setOpenModal] = useState<
+    | { type: 'auth'; mode: 'login' | 'signup' }
+    | null
+  >(null);
 
   const filteredListings = listings.filter(listing => 
     listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -20,13 +24,41 @@ const Explore = () => {
     listing.price >= priceRange[0] && listing.price <= priceRange[1]
   );
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && data.session.user) {
+        setUser({
+          name: data.session.user.user_metadata?.name || data.session.user.email.split('@')[0],
+          email: data.session.user.email
+        });
+        setIsLoggedIn(true);
+      }
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (['SIGNED_OUT', 'USER_DELETED'].includes(event)) {
+        setUser(null);
+        setIsLoggedIn(false);
+      } else if (session && session.user) {
+        setUser({
+          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+          email: session.user.email
+        });
+        setIsLoggedIn(true);
+      }
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
   const handleAuth = (userData: { name: string; email: string }) => {
     setUser(userData);
     setIsLoggedIn(true);
-    setAuthModal(null);
+    setOpenModal(null);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setIsLoggedIn(false);
   };
@@ -36,9 +68,18 @@ const Explore = () => {
       <Header 
         isLoggedIn={isLoggedIn}
         user={user}
-        onAuthModal={setAuthModal}
+        onAuthModal={(mode) => setOpenModal({ type: 'auth', mode })}
         onLogout={handleLogout}
       />
+
+      {openModal?.type === 'auth' && (
+        <AuthModal
+          type={openModal.mode}
+          onClose={() => setOpenModal(null)}
+          onAuth={handleAuth}
+          onSwitchType={(mode) => setOpenModal({ type: 'auth', mode })}
+        />
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {/* Search and Filters */}

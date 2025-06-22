@@ -1,8 +1,9 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, MapPin, Users, Clock } from 'lucide-react';
 import Header from '../components/Header';
 import { Button } from '@/components/ui/button';
+import AuthModal from '../components/AuthModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Booking {
   id: string;
@@ -20,40 +21,62 @@ interface Booking {
 const Bookings = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
+  const [openModal, setOpenModal] = useState<
+    | { type: 'auth'; mode: 'login' | 'signup' }
+    | null
+  >(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock bookings data
-  const [bookings] = useState<Booking[]>([
-    {
-      id: '1',
-      listingTitle: 'Cozy Mountain Cabin',
-      listingImage: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      location: 'Aspen, Colorado',
-      checkIn: '2024-07-15',
-      checkOut: '2024-07-20',
-      guests: 4,
-      totalPrice: 1250,
-      status: 'upcoming',
-      hostName: 'Sarah'
-    },
-    {
-      id: '2',
-      listingTitle: 'Modern Beach House',
-      listingImage: 'https://images.unsplash.com/photo-1520637836862-4d197d17c93a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
-      location: 'Malibu, California',
-      checkIn: '2024-06-01',
-      checkOut: '2024-06-05',
-      guests: 2,
-      totalPrice: 800,
-      status: 'completed',
-      hostName: 'Mike'
+  const fetchBookings = useCallback(async (userId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setBookings(data || []);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch bookings');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, []);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const userId = data.session?.user?.id;
+      if (userId) fetchBookings(userId);
+      else setBookings([]);
+      // Fetch demo bookings from localStorage
+      const demo = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
+      if (demo.length > 0) setBookings(prev => [...demo, ...prev]);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (['SIGNED_OUT', 'USER_DELETED'].includes(event)) {
+        setUser(null);
+        setIsLoggedIn(false);
+      } else if (session && session.user) {
+        setUser({
+          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+          email: session.user.email
+        });
+        setIsLoggedIn(true);
+      }
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, [user, fetchBookings]);
 
   const handleAuth = (userData: { name: string; email: string }) => {
     setUser(userData);
     setIsLoggedIn(true);
-    setAuthModal(null);
+    setOpenModal(null);
   };
 
   const handleLogout = () => {
@@ -87,9 +110,18 @@ const Bookings = () => {
       <Header 
         isLoggedIn={isLoggedIn}
         user={user}
-        onAuthModal={setAuthModal}
+        onAuthModal={(mode) => setOpenModal({ type: 'auth', mode })}
         onLogout={handleLogout}
       />
+
+      {openModal?.type === 'auth' && (
+        <AuthModal
+          type={openModal.mode}
+          onClose={() => setOpenModal(null)}
+          onAuth={handleAuth}
+          onSwitchType={(mode) => setOpenModal({ type: 'auth', mode })}
+        />
+      )}
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="mb-8">
@@ -97,7 +129,11 @@ const Bookings = () => {
           <p className="text-gray-600">Manage your trips and view booking details</p>
         </div>
 
-        {bookings.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12 text-gray-500">Loading bookings...</div>
+        ) : error ? (
+          <div className="text-center py-12 text-red-500">{error}</div>
+        ) : bookings.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Calendar className="w-8 h-8 text-gray-400" />

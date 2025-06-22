@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Star, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Listing } from '../types';
+import { motion } from 'framer-motion';
 
 interface ListingCardProps {
   listing: Listing;
@@ -14,16 +14,26 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
       to={`/listing/${listing.id}`}
       className="group block animate-fade-in"
     >
-      <div className="bg-white rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+      <motion.div
+        whileHover={{ scale: 1.04, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="bg-white rounded-xl overflow-hidden transition-all duration-300"
+      >
         <div className="relative overflow-hidden">
-          <img
+          <motion.img
             src={listing.image}
             alt={listing.title}
             className="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-700"
+            whileHover={{ scale: 1.08 }}
+            transition={{ duration: 0.5 }}
           />
-          <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white hover:scale-110 transition-all duration-200">
+          <motion.button
+            whileHover={{ scale: 1.15 }}
+            className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all duration-200"
+          >
             <Heart className="w-4 h-4 text-gray-600 hover:text-coral-500" />
-          </button>
+          </motion.button>
           <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center space-x-1">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="text-sm font-medium">{listing.rating}</span>
@@ -49,7 +59,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 };

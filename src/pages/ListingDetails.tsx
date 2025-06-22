@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Heart, Share, MapPin, Wifi, Car, Home, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { listings } from '../data/listings';
 import Header from '../components/Header';
+import AuthModal from '../components/AuthModal';
 
 const ListingDetails = () => {
   const { id } = useParams();
@@ -15,7 +15,10 @@ const ListingDetails = () => {
   const [guests, setGuests] = useState(1);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
+  const [openModal, setOpenModal] = useState<
+    | { type: 'auth'; mode: 'login' | 'signup' }
+    | null
+  >(null);
 
   const listing = listings.find(l => l.id === id);
 
@@ -59,7 +62,7 @@ const ListingDetails = () => {
   const handleAuth = (userData: { name: string; email: string }) => {
     setUser(userData);
     setIsLoggedIn(true);
-    setAuthModal(null);
+    setOpenModal(null);
   };
 
   const handleLogout = () => {
@@ -72,7 +75,7 @@ const ListingDetails = () => {
       <Header 
         isLoggedIn={isLoggedIn}
         user={user}
-        onAuthModal={setAuthModal}
+        onAuthModal={(mode) => setOpenModal({ type: 'auth', mode })}
         onLogout={handleLogout}
       />
       
@@ -267,6 +270,15 @@ const ListingDetails = () => {
           </div>
         </div>
       </div>
+
+      {openModal?.type === 'auth' && (
+        <AuthModal
+          type={openModal.mode}
+          onClose={() => setOpenModal(null)}
+          onAuth={handleAuth}
+          onSwitchType={(mode) => setOpenModal({ type: 'auth', mode })}
+        />
+      )}
     </div>
   );
 };

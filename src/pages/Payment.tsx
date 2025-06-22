@@ -1,9 +1,9 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Smartphone, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PaymentProgressModal from '../components/PaymentProgressModal';
+import { supabase } from '@/integrations/supabase/client';
 
 const Payment = () => {
   const location = useLocation();
@@ -14,8 +14,17 @@ const Payment = () => {
   const [cvv, setCvv] = useState('');
   const [nameOnCard, setNameOnCard] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [userId, setUserId] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [bankTransferLoading, setBankTransferLoading] = useState(false);
 
   const bookingData = location.state;
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUserId(data.session?.user?.id || null);
+    });
+  }, []);
 
   if (!bookingData) {
     return (
@@ -32,13 +41,52 @@ const Payment = () => {
 
   const { listing, checkIn, checkOut, guests, nights, total } = bookingData;
 
+  const saveDemoBooking = () => {
+    const demoBooking = {
+      id: Date.now().toString(),
+      listingTitle: listing.title,
+      listingImage: listing.image,
+      location: listing.location,
+      checkIn,
+      checkOut,
+      guests,
+      totalPrice: total,
+      status: 'upcoming',
+      hostName: listing.host,
+    };
+    const prev = JSON.parse(localStorage.getItem('demo_bookings') || '[]');
+    localStorage.setItem('demo_bookings', JSON.stringify([demoBooking, ...prev]));
+  };
+
   const handlePayment = async () => {
     setPaymentStatus('processing');
-    
-    // Simulate payment processing
-    setTimeout(() => {
+    setErrorMsg(null);
+    try {
+      // Simulate payment processing
+      await new Promise(res => setTimeout(res, 2000));
+      saveDemoBooking();
       setPaymentStatus('success');
-    }, 3000);
+    } catch (err: any) {
+      setErrorMsg(err.message || String(err));
+      console.error('Payment error:', err);
+      setPaymentStatus('error');
+    }
+  };
+
+  const handleBankTransferConfirm = async () => {
+    setBankTransferLoading(true);
+    setPaymentStatus('processing');
+    setErrorMsg(null);
+    try {
+      await new Promise(res => setTimeout(res, 1000));
+      saveDemoBooking();
+      setPaymentStatus('success');
+    } catch (err: any) {
+      setErrorMsg(err.message || String(err));
+      setPaymentStatus('error');
+    } finally {
+      setBankTransferLoading(false);
+    }
   };
 
   const handleBackToHome = () => {
@@ -195,6 +243,24 @@ const Payment = () => {
                     </div>
                   </div>
                 )}
+
+                {paymentMethod === 'bank' && (
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 p-4 rounded-lg border">
+                      <div className="mb-2 font-semibold">Bank Transfer Details</div>
+                      <div><span className="font-medium">Bank Name:</span> Example Bank</div>
+                      <div><span className="font-medium">Account Number:</span> 1234567890</div>
+                      <div><span className="font-medium">Account Name:</span> Airbnb Holdings</div>
+                    </div>
+                    <Button
+                      onClick={handleBankTransferConfirm}
+                      disabled={bankTransferLoading || paymentStatus === 'processing'}
+                      className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium text-lg transition-colors"
+                    >
+                      {bankTransferLoading ? 'Processing...' : 'I have transferred the money'}
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Terms */}
@@ -277,6 +343,17 @@ const Payment = () => {
         onBackToHome={handleBackToHome}
         onViewBookings={handleViewBookings}
       />
+      {errorMsg && (
+        <div className="text-center text-red-500 mt-4">{errorMsg}</div>
+      )}
+      {paymentStatus === 'success' && (
+        <div className="flex justify-center gap-4 mt-6">
+          <Button onClick={handleBackToHome} className="bg-red-500 hover:bg-red-600 text-white">Back to Home</Button>
+          <Link to="/explore" className="inline-block">
+            <Button className="bg-gray-700 hover:bg-gray-800 text-white">Explore</Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
