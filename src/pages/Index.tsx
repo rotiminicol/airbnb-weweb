@@ -2,40 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import AuthModal from '../components/AuthModal';
-import { supabase } from '@/integrations/supabase/client';
+import { listings } from '../data/listings';
 import { Listing } from '../types';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-
-// Fix for default markers
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
 
 const Index = () => {
   const [authModal, setAuthModal] = useState<'login' | 'signup' | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
 
-  const { data: listings = [], isLoading } = useQuery({
-    queryKey: ['listings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Listing[];
-    },
-  });
+  // Use static listings data for now since Supabase table doesn't exist yet
+  const featuredListings = listings.slice(0, 8);
 
   const handleAuth = (userData: { name: string; email: string }) => {
     setUser(userData);
@@ -47,17 +26,6 @@ const Index = () => {
     setUser(null);
     setIsLoggedIn(false);
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-coral-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading amazing places...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -147,7 +115,7 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {listings.slice(0, 8).map((listing, index) => (
+            {featuredListings.map((listing, index) => (
               <div
                 key={listing.id}
                 className="animate-fade-in"
@@ -160,43 +128,25 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Map Section */}
+      {/* Simple Map Section - No external dependencies */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
             Discover Destinations
           </h2>
           
-          <div className="h-96 rounded-2xl overflow-hidden shadow-lg">
-            <MapContainer
-              center={[39.8283, -98.5795]}
-              zoom={4}
-              style={{ height: '100%', width: '100%' }}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              {listings.map((listing) => (
-                <Marker
-                  key={listing.id}
-                  position={[listing.coordinates.lat, listing.coordinates.lng]}
-                >
-                  <Popup>
-                    <div className="p-2">
-                      <img
-                        src={listing.image}
-                        alt={listing.title}
-                        className="w-32 h-20 object-cover rounded mb-2"
-                      />
-                      <h3 className="font-semibold text-sm">{listing.title}</h3>
-                      <p className="text-xs text-gray-600">{listing.location}</p>
-                      <p className="font-bold text-sm">${listing.price}/night</p>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
+          <div className="h-96 rounded-2xl overflow-hidden shadow-lg bg-gray-100 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🗺️</div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">Interactive Map</h3>
+              <p className="text-gray-600">Explore destinations worldwide</p>
+              <Link
+                to="/explore"
+                className="inline-block mt-4 bg-coral-500 text-white px-6 py-2 rounded-lg hover:bg-coral-600 transition-colors"
+              >
+                View on Map
+              </Link>
+            </div>
           </div>
         </div>
       </section>

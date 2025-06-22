@@ -1,20 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Search, Filter, MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import { listings } from '../data/listings';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-
-// Fix for default markers
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
 
 const Explore = () => {
   const [showMap, setShowMap] = useState(false);
@@ -111,38 +100,22 @@ const Explore = () => {
             </div>
           </div>
 
-          {/* Map */}
+          {/* Simple Map Placeholder */}
           {showMap && (
-            <div className="sticky top-24 h-[600px] rounded-lg overflow-hidden border">
-              <MapContainer
-                center={[39.8283, -98.5795]} // Center of USA
-                zoom={4}
-                style={{ height: '100%', width: '100%' }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {filteredListings.map((listing) => (
-                  <Marker
-                    key={listing.id}
-                    position={[listing.coordinates.lat, listing.coordinates.lng]}
-                  >
-                    <Popup>
-                      <div className="p-2">
-                        <img
-                          src={listing.image}
-                          alt={listing.title}
-                          className="w-32 h-20 object-cover rounded mb-2"
-                        />
-                        <h3 className="font-semibold text-sm">{listing.title}</h3>
-                        <p className="text-xs text-gray-600">{listing.location}</p>
-                        <p className="font-bold text-sm">${listing.price}/night</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
+            <div className="sticky top-24 h-[600px] rounded-lg overflow-hidden border bg-gray-100 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🗺️</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">Interactive Map</h3>
+                <p className="text-gray-600 mb-4">Showing {filteredListings.length} properties</p>
+                <div className="grid grid-cols-2 gap-2 max-w-xs mx-auto">
+                  {filteredListings.slice(0, 4).map((listing) => (
+                    <div key={listing.id} className="bg-white p-2 rounded shadow text-xs">
+                      <div className="font-semibold truncate">{listing.title}</div>
+                      <div className="text-gray-600">${listing.price}/night</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
