@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Globe, Menu, User, MapPin } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -24,20 +25,24 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onAuthModal, onLogout
     { code: 'it', name: 'Italiano', currency: 'EUR' },
   ];
 
+  const getUserInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">A</span>
             </div>
-            <span className="text-xl font-bold text-red-500">airbnb</span>
+            <span className="text-xl font-bold text-red-500 hidden sm:block">airbnb</span>
           </Link>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex items-center flex-1 max-w-2xl mx-8">
+          {/* Search Bar - Hidden on mobile */}
+          <div className="hidden lg:flex items-center flex-1 max-w-2xl mx-8">
             <div className="w-full border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center">
                 <div className="flex-1 px-6 py-3">
@@ -70,13 +75,20 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onAuthModal, onLogout
             </div>
           </div>
 
+          {/* Mobile Search Button */}
+          <div className="flex lg:hidden">
+            <button className="p-2 rounded-full hover:bg-gray-100">
+              <Search className="w-5 h-5 text-gray-700" />
+            </button>
+          </div>
+
           {/* Right Side */}
-          <div className="flex items-center space-x-4">
-            {/* Host Dropdown */}
-            <div className="relative">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Host Dropdown - Hidden on mobile */}
+            <div className="relative hidden md:block">
               <button
                 onClick={() => setShowHostDropdown(!showHostDropdown)}
-                className="text-gray-700 hover:text-gray-900 font-medium px-3 py-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="text-gray-700 hover:text-gray-900 font-medium px-3 py-2 rounded-full hover:bg-gray-100 transition-colors text-sm"
               >
                 Airbnb your home
               </button>
@@ -98,20 +110,12 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onAuthModal, onLogout
                     <div className="font-medium text-gray-900">Host an experience</div>
                     <div className="text-sm text-gray-600">Share your passion with guests</div>
                   </Link>
-                  <Link
-                    to="/hosting-resources"
-                    className="block px-4 py-3 hover:bg-gray-50 transition-colors"
-                    onClick={() => setShowHostDropdown(false)}
-                  >
-                    <div className="font-medium text-gray-900">Hosting resources</div>
-                    <div className="text-sm text-gray-600">Learn tips from other hosts</div>
-                  </Link>
                 </div>
               )}
             </div>
 
             {/* Language/Region Dropdown */}
-            <div className="relative">
+            <div className="relative hidden sm:block">
               <button
                 onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
                 className="p-3 rounded-full hover:bg-gray-100 transition-colors"
@@ -143,12 +147,21 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onAuthModal, onLogout
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 border border-gray-300 rounded-full py-2 px-3 hover:shadow-md transition-shadow"
+                className="flex items-center space-x-2 border border-gray-300 rounded-full py-1 px-2 sm:py-2 sm:px-3 hover:shadow-md transition-shadow"
               >
                 <Menu className="w-4 h-4 text-gray-700" />
-                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
+                {isLoggedIn && user ? (
+                  <Avatar className="w-6 h-6 sm:w-8 sm:h-8">
+                    <AvatarImage src="" />
+                    <AvatarFallback className="bg-red-500 text-white text-xs font-medium">
+                      {getUserInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                    <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                  </div>
+                )}
               </button>
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
@@ -156,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onAuthModal, onLogout
                     <>
                       <div className="px-4 py-3 border-b border-gray-200">
                         <div className="font-medium text-gray-900">{user?.name}</div>
-                        <div className="text-sm text-gray-600">{user?.email}</div>
+                        <div className="text-sm text-gray-600 truncate">{user?.email}</div>
                       </div>
                       <Link
                         to="/trips"
@@ -164,6 +177,13 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, user, onAuthModal, onLogout
                         onClick={() => setShowUserMenu(false)}
                       >
                         Trips
+                      </Link>
+                      <Link
+                        to="/bookings"
+                        className="block px-4 py-2 hover:bg-gray-50 transition-colors"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Your bookings
                       </Link>
                       <Link
                         to="/wishlists"

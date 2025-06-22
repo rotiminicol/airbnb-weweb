@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Smartphone, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import PaymentProgressModal from '../components/PaymentProgressModal';
 
 const Payment = () => {
   const location = useLocation();
@@ -12,15 +13,16 @@ const Payment = () => {
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [nameOnCard, setNameOnCard] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
 
   const bookingData = location.state;
 
   if (!bookingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">No booking data found</h2>
-          <Link to="/" className="text-coral-500 hover:text-coral-600">
+          <Link to="/" className="text-red-500 hover:text-red-600">
             Return to home
           </Link>
         </div>
@@ -30,10 +32,27 @@ const Payment = () => {
 
   const { listing, checkIn, checkOut, guests, nights, total } = bookingData;
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
+    setPaymentStatus('processing');
+    
     // Simulate payment processing
-    alert('Payment successful! Your booking has been confirmed.');
+    setTimeout(() => {
+      setPaymentStatus('success');
+    }, 3000);
+  };
+
+  const handleBackToHome = () => {
+    setPaymentStatus('idle');
     navigate('/');
+  };
+
+  const handleViewBookings = () => {
+    setPaymentStatus('idle');
+    navigate('/bookings');
+  };
+
+  const closeModal = () => {
+    setPaymentStatus('idle');
   };
 
   return (
@@ -53,16 +72,16 @@ const Payment = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Confirm and pay</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Confirm and pay</h1>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             {/* Payment Form */}
             <div className="space-y-6">
               {/* Trip Details */}
-              <div className="bg-white rounded-lg border p-6">
-                <h2 className="text-xl font-semibold mb-4">Your trip</h2>
+              <div className="bg-white rounded-lg border p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-4">Your trip</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Dates</span>
@@ -76,8 +95,8 @@ const Payment = () => {
               </div>
 
               {/* Payment Method */}
-              <div className="bg-white rounded-lg border p-6">
-                <h2 className="text-xl font-semibold mb-4">Choose payment method</h2>
+              <div className="bg-white rounded-lg border p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold mb-4">Choose payment method</h2>
                 
                 <div className="space-y-3 mb-6">
                   <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
@@ -87,7 +106,7 @@ const Payment = () => {
                       value="card"
                       checked={paymentMethod === 'card'}
                       onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="text-coral-500"
+                      className="text-red-500"
                     />
                     <CreditCard className="w-5 h-5 text-gray-600" />
                     <span className="font-medium">Credit or debit card</span>
@@ -100,7 +119,7 @@ const Payment = () => {
                       value="paypal"
                       checked={paymentMethod === 'paypal'}
                       onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="text-coral-500"
+                      className="text-red-500"
                     />
                     <Smartphone className="w-5 h-5 text-gray-600" />
                     <span className="font-medium">PayPal</span>
@@ -113,7 +132,7 @@ const Payment = () => {
                       value="bank"
                       checked={paymentMethod === 'bank'}
                       onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="text-coral-500"
+                      className="text-red-500"
                     />
                     <Building className="w-5 h-5 text-gray-600" />
                     <span className="font-medium">Bank transfer</span>
@@ -131,7 +150,7 @@ const Payment = () => {
                         value={cardNumber}
                         onChange={(e) => setCardNumber(e.target.value)}
                         placeholder="1234 1234 1234 1234"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       />
                     </div>
                     
@@ -145,7 +164,7 @@ const Payment = () => {
                           value={expiryDate}
                           onChange={(e) => setExpiryDate(e.target.value)}
                           placeholder="MM/YY"
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-transparent"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         />
                       </div>
                       <div>
@@ -157,7 +176,7 @@ const Payment = () => {
                           value={cvv}
                           onChange={(e) => setCvv(e.target.value)}
                           placeholder="123"
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-transparent"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -171,7 +190,7 @@ const Payment = () => {
                         value={nameOnCard}
                         onChange={(e) => setNameOnCard(e.target.value)}
                         placeholder="John Doe"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -182,16 +201,17 @@ const Payment = () => {
               <div className="text-sm text-gray-600">
                 <p className="mb-2">
                   By selecting the button below, I agree to the{' '}
-                  <a href="#" className="text-coral-500 hover:underline">Host's House Rules</a>,{' '}
-                  <a href="#" className="text-coral-500 hover:underline">Ground rules for guests</a>,{' '}
-                  <a href="#" className="text-coral-500 hover:underline">Airbnb's Rebooking and Refund Policy</a>, and that Airbnb can{' '}
-                  <a href="#" className="text-coral-500 hover:underline">charge my payment method</a> if I'm responsible for damage.
+                  <a href="#" className="text-red-500 hover:underline">Host's House Rules</a>,{' '}
+                  <a href="#" className="text-red-500 hover:underline">Ground rules for guests</a>,{' '}
+                  <a href="#" className="text-red-500 hover:underline">Airbnb's Rebooking and Refund Policy</a>, and that Airbnb can{' '}
+                  <a href="#" className="text-red-500 hover:underline">charge my payment method</a> if I'm responsible for damage.
                 </p>
               </div>
 
               <Button 
                 onClick={handlePayment}
-                className="w-full bg-coral-500 hover:bg-coral-600 text-white py-4 rounded-lg font-medium text-lg transition-colors"
+                disabled={paymentStatus === 'processing'}
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-lg font-medium text-lg transition-colors"
               >
                 Confirm and pay
               </Button>
@@ -199,12 +219,12 @@ const Payment = () => {
 
             {/* Booking Summary */}
             <div>
-              <div className="bg-white rounded-lg border p-6 sticky top-6">
+              <div className="bg-white rounded-lg border p-4 sm:p-6 sticky top-6">
                 <div className="flex items-start space-x-4 mb-6">
                   <img
                     src={listing.image}
                     alt={listing.title}
-                    className="w-24 h-24 object-cover rounded-lg"
+                    className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg"
                   />
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-1">{listing.title}</h3>
@@ -248,6 +268,15 @@ const Payment = () => {
           </div>
         </div>
       </div>
+
+      {/* Payment Progress Modal */}
+      <PaymentProgressModal
+        isOpen={paymentStatus !== 'idle'}
+        status={paymentStatus === 'processing' ? 'processing' : paymentStatus === 'success' ? 'success' : 'error'}
+        onClose={closeModal}
+        onBackToHome={handleBackToHome}
+        onViewBookings={handleViewBookings}
+      />
     </div>
   );
 };
