@@ -163,10 +163,9 @@ class XanoAPI {
     });
 
     const data = await response.json();
-    console.log('Xano login response:', data); // Debug: see the actual response structure
-    console.log('Response keys:', Object.keys(data)); // Debug: see all available keys
+    console.log('Xano login response:', data);
     
-    const token = data.authToken || data.token || data.access_token || data.jwt; // Check for more common token names
+    const token = data.authToken || data.token || data.access_token || data.jwt;
     
     if (token) {
       this.authToken = token;
@@ -179,44 +178,70 @@ class XanoAPI {
   }
 
   async signup(name: string, email: string, password: string) {
-    const signupData = {
-      name,
-      email,
-      password
-    };
-    
-    console.log('Sending signup data:', { ...signupData, password: '***' }); // Debug: see what we're sending
-    console.log('Signup data keys:', Object.keys(signupData)); // Debug: see the exact keys being sent
-    
-    const response = await fetch(`${AUTH_API}/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(signupData),
-    });
+    // Try different field name combinations that Xano might expect
+    const signupVariations = [
+      // Standard fields
+      { name, email, password },
+      // Alternative field names
+      { full_name: name, email, password },
+      { user_name: name, email, password },
+      { first_name: name, email, password },
+      // With additional common fields
+      { name, email, password, verified: false },
+      { name, email, password, active: true },
+      // Minimal required fields only
+      { email, password }
+    ];
 
-    console.log('Signup response status:', response.status); // Debug: see the HTTP status
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Xano signup error:', errorData); // Debug: see the error details
-      console.error('Full error response:', JSON.stringify(errorData, null, 2)); // More detailed error info
-      throw new Error(`Signup failed: ${response.status} - ${JSON.stringify(errorData)}`);
+    let lastError = null;
+
+    // Try each variation until one works
+    for (const signupData of signupVariations) {
+      try {
+        console.log('Trying signup with data:', { ...signupData, password: '***' });
+        
+        const response = await fetch(`${AUTH_API}/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(signupData),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Signup successful with data structure:', Object.keys(signupData));
+          console.log('Xano signup response:', data);
+          
+          const token = data.authToken || data.token || data.access_token || data.jwt;
+          
+          if (token) {
+            this.authToken = token;
+            localStorage.setItem('xano_auth_token', token);
+          }
+
+          return data;
+        } else {
+          const errorData = await response.json();
+          lastError = errorData;
+          console.log(`Signup failed with structure ${JSON.stringify(Object.keys(signupData))}: ${response.status}`, errorData);
+          
+          // If it's not a column error, break and throw
+          if (!errorData.message?.includes('UNDEFINED COLUMN') && !errorData.message?.includes('42703')) {
+            throw new Error(`Signup failed: ${response.status} - ${JSON.stringify(errorData)}`);
+          }
+        }
+      } catch (error) {
+        console.error('Signup attempt failed:', error);
+        lastError = error;
+        
+        // If it's not a column-related error, break
+        if (!error.message?.includes('UNDEFINED COLUMN') && !error.message?.includes('42703')) {
+          break;
+        }
+      }
     }
 
-    const data = await response.json();
-    console.log('Xano signup response:', data); // Debug: see the actual response structure
-    console.log('Response keys:', Object.keys(data)); // Debug: see all available keys
-    
-    const token = data.authToken || data.token || data.access_token || data.jwt; // Check for more common token names
-    
-    if (token) {
-      this.authToken = token;
-      localStorage.setItem('xano_auth_token', token);
-    } else {
-      console.log('No token found in response. Available keys:', Object.keys(data));
-    }
-
-    return data;
+    // If all variations failed, throw the last error
+    throw new Error(`All signup attempts failed. Last error: ${lastError?.message || JSON.stringify(lastError)}`);
   }
 
   async getCurrentUser(): Promise<User> {
@@ -512,4 +537,4 @@ class XanoAPI {
 }
 
 // Export singleton instance
-export const xanoAPI = new XanoAPI(); 
+export const xanoAPI = new XanoAPI();
